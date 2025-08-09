@@ -1,0 +1,287 @@
+.mycelium-graph-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #0f0f23 0%, #050505 100%);
+}
+
+/* Legend/Key */
+.legend-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(15, 15, 35, 0.95);
+  border: 1px solid #64ffda;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 
+    0 0 20px rgba(100, 255, 218, 0.2),
+    inset 0 0 15px rgba(100, 255, 218, 0.05);
+  backdrop-filter: blur(10px);
+  font-family: 'Inter', sans-serif;
+  color: #ffffff;
+  z-index: 999;
+  min-width: 180px;
+}
+
+.legend-section {
+  margin-bottom: 15px;
+}
+
+.legend-section:last-child {
+  margin-bottom: 0;
+}
+
+.legend-section h4 {
+  color: #64ffda;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  text-shadow: 0 0 5px rgba(100, 255, 218, 0.3);
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.legend-line {
+  border-radius: 1px;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.legend-item span {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+/* Node Details Panel */
+.node-details-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: rgba(15, 15, 35, 0.95);
+  border: 2px solid #64ffda;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 
+    0 0 30px rgba(100, 255, 218, 0.3),
+    inset 0 0 20px rgba(100, 255, 218, 0.1);
+  backdrop-filter: blur(10px);
+  font-family: 'Inter', sans-serif;
+  color: #ffffff;
+  z-index: 1000;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #64ffda;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: rgba(100, 255, 218, 0.1);
+  transform: rotate(90deg);
+}
+
+.node-details-panel h3 {
+  color: #64ffda;
+  margin: 0 0 15px 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+  padding-right: 30px;
+}
+
+.person-details p, .department-details p {
+  margin: 8px 0;
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+
+.person-details strong, .department-details strong {
+  color: #4ecdc4;
+}
+
+/* OCEAN Traits Visualization */
+.ocean-scores {
+  margin-top: 20px;
+}
+
+.ocean-scores h4 {
+  color: #ff6b6b;
+  font-size: 1rem;
+  margin: 0 0 15px 0;
+  font-weight: 500;
+}
+
+.trait-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trait-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.trait-name {
+  width: 110px;
+  color: #ffffff;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.bar-container {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #64ffda, #4ecdc4, #45b7d1);
+  border-radius: 4px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
+}
+
+.trait-score {
+  width: 40px;
+  text-align: right;
+  color: #64ffda;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Scrollbar styling */
+.node-details-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.node-details-panel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.node-details-panel::-webkit-scrollbar-thumb {
+  background: #64ffda;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+.node-details-panel::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .legend-container {
+    left: 10px;
+    top: 10px;
+    min-width: 160px;
+    padding: 12px;
+  }
+
+  .legend-section h4 {
+    font-size: 0.8rem;
+  }
+
+  .legend-item {
+    font-size: 0.7rem;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .node-details-panel {
+    width: 280px;
+    right: 10px;
+    top: 10px;
+    max-height: 70vh;
+    padding: 15px;
+  }
+  
+  .trait-name {
+    width: 90px;
+    font-size: 0.8rem;
+  }
+  
+  .trait-bar {
+    font-size: 0.8rem;
+  }
+}
+
+/* Loading and transition effects */
+.mycelium-graph-container canvas {
+  transition: opacity 0.5s ease;
+}
+
+/* Custom cursor for interactive elements */
+.mycelium-graph-container {
+  cursor: grab;
+}
+
+.mycelium-graph-container:active {
+  cursor: grabbing;
+}
+
+/* Glow animations for enhanced mycelium feel */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(100, 255, 218, 0.3),
+      inset 0 0 20px rgba(100, 255, 218, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(100, 255, 218, 0.5),
+      inset 0 0 25px rgba(100, 255, 218, 0.2);
+  }
+}
+
+.node-details-panel {
+  animation: pulse-glow 3s ease-in-out infinite;
+}

@@ -1,0 +1,17 @@
+.App {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #0a0a0a;
+}
+
+.App h1 {
+  color: #64ffda;
+  text-shadow: 0 0 20px rgba(100, 255, 218, 0.5);
+  margin: 0;
+  padding: 20px;
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 2px;
+}
