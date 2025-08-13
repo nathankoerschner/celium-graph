@@ -186,7 +186,7 @@ const MyceliumGraph = () => {
 
     // Calculate link properties based on relation type
     let strokeStyle = "#64ffda";
-    let lineWidth = 1;
+    let lineWidth = .3;
     let pulseSpeed = 1;
     let pulseCount = 1;
 
@@ -368,9 +368,9 @@ const MyceliumGraph = () => {
         d3AlphaDecay={0.01}
         d3VelocityDecay={0.15}
         d3ReheatSimulation={false}
-        linkDistance={200}
-        linkStrength={0.3}
-        chargeStrength={-500}
+        linkDistance={7000}
+        linkStrength={0.1}
+        chargeStrength={-100}
         enableNodeDrag={true}
         enableZoomInteraction={true}
         enablePanInteraction={true}
