@@ -3,8 +3,6 @@ import ForceGraph3D from "react-force-graph-3d";
 import { sampleGraphData } from "../data/sampleData";
 import "./MyceliumGraph.css";
 import * as THREE from "three";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { Vector2 } from "three";
 
 import * as d3 from "d3-force";
 const MyceliumGraph = () => {
@@ -13,7 +11,7 @@ const MyceliumGraph = () => {
   useEffect(() => {
     const fg = fgRef.current;
     if (fg) {
-      // Set up 3D forces
+      // Set up 3D forces only - no bloom effect
       fg.d3Force("charge").strength(-300).distanceMax(500);
       fg.d3Force("link")
         .distance((l) => (l.type === "dept" ? 150 : 80))
@@ -22,9 +20,9 @@ const MyceliumGraph = () => {
         "collide",
         d3.forceCollide((n) => getNodeSize(n) + 5),
       );
-
     }
   }, []);
+    
   const [graphData, setGraphData] = useState(sampleGraphData);
   const [selectedNode, setSelectedNode] = useState(null);
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -47,7 +45,7 @@ const MyceliumGraph = () => {
   // Very simple animation loop for hover effects only
   useEffect(() => {
     let animationId;
-    
+
     const animate = () => {
       // Update only hover opacity (very simple)
       if (fgRef.current) {
@@ -55,15 +53,17 @@ const MyceliumGraph = () => {
         if (scene) {
           scene.traverse((object) => {
             if (object.userData && object.userData.material) {
-              object.userData.material.opacity = object.userData.isHovered() ? 1.0 : 0.8;
+              object.userData.material.opacity = object.userData.isHovered()
+                ? 1.0
+                : 0.8;
             }
           });
         }
       }
-      
+
       animationId = requestAnimationFrame(animate);
     };
-    
+
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
   }, []);
@@ -121,12 +121,12 @@ const MyceliumGraph = () => {
     });
 
     const sphere = new THREE.Mesh(geometry, material);
-    
+
     // Store reference for hover updates
     sphere.userData = {
       node,
       isHovered: () => hoveredNode === node,
-      material
+      material,
     };
 
     return sphere;
@@ -137,65 +137,66 @@ const MyceliumGraph = () => {
 
     if (!source || !target) return null;
 
-    // Get link properties
-    let color = "#64ffda";
+    // Get link properties - New color palette
+    // #00fff0 (Cyan), #FFD700 (Gold), #E0E0E0 (Light Gray), #1F1B24 (Dark), #101822 (Darker), #4B0082 (Indigo)
+    let color = "#00fff0";
     let lineWidth = 1;
     let pulseSpeed = 1;
     let pulseCount = 1;
 
     switch (relation) {
       case "belongs-to":
-        color = "#64ffda";
+        color = "#E0E0E0"; // Light gray for hierarchical connections
         lineWidth = 2;
         pulseSpeed = 0.5;
         pulseCount = 1;
         break;
       case "collaboration":
-        color = "#ff6b6b";
+        color = "#FFD700"; // Gold for active collaboration
         lineWidth = 1.5;
         pulseSpeed = 1.2;
         pulseCount = 2;
         break;
       case "introvert-connection":
       case "extrovert-connection":
-        color = "#4ecdc4";
+        color = "#4B0082"; // Indigo for personality connections
         lineWidth = 1;
         pulseSpeed = 0.8;
         pulseCount = 1;
         break;
       case "openness-similarity":
       case "creative-synergy":
-        color = "#ffd93d";
+        color = "#00fff0"; // Bright cyan for creative connections
         lineWidth = 1;
         pulseSpeed = 1.5;
         pulseCount = 3;
         break;
       case "complementary-traits":
-        color = "#6c5ce7";
+        color = "#4B0082"; // Indigo for complementary traits
         lineWidth = 1;
         pulseSpeed = 0.6;
         pulseCount = 1;
         break;
       case "high-conscientiousness":
-        color = "#90ee90";
+        color = "#E0E0E0"; // Light gray for conscientiousness
         lineWidth = 1;
         pulseSpeed = 0.4;
         pulseCount = 1;
         break;
       case "leadership-connection":
-        color = "#ffa500";
+        color = "#FFD700"; // Gold for leadership
         lineWidth = 1.5;
         pulseSpeed = 1.8;
         pulseCount = 2;
         break;
       case "mentorship":
-        color = "#20b2aa";
+        color = "#00fff0"; // Cyan for mentorship
         lineWidth = 1.2;
         pulseSpeed = 0.7;
         pulseCount = 1;
         break;
       default:
-        color = "#64ffda";
+        color = "#E0E0E0"; // Light gray default
         pulseSpeed = 1;
         pulseCount = 1;
     }
@@ -254,7 +255,6 @@ const MyceliumGraph = () => {
     return line;
   };
 
-
   return (
     <div className="mycelium-graph-container">
       <ForceGraph3D
@@ -262,7 +262,7 @@ const MyceliumGraph = () => {
         graphData={graphData}
         width={dimensions.width}
         height={dimensions.height}
-        backgroundColor="#121212"
+        backgroundColor="#101822"
         nodeThreeObject={createNodeObject}
         linkThreeObject={createLinkObject}
         onNodeClick={handleNodeClick}
@@ -270,6 +270,13 @@ const MyceliumGraph = () => {
         onBackgroundClick={handleBackgroundClick}
         nodeRelSize={1}
         linkWidth={0}
+        linkCurvature={.31}
+      linkCurveRotation={.11}
+      linkDirectionalParticles={1}
+      linkDirectionalParticleOffset={.1}
+      linkDirectionalParticleSpeed={.0081}
+      linkDirectionalParticleWidth={4}
+      linkDirectionalParticleColor = {'#00FFF0'}
         nodeLabel=""
         cooldownTicks={300}
         d3AlphaDecay={0.01}

@@ -4,7 +4,7 @@ import './App.css'
 function App() {
   return (
     <div className="App">
-      <h1>Your Mycelium Map</h1>
+      <h1>Your Celium Map</h1>
       <MyceliumGraph />
     </div>
   )
