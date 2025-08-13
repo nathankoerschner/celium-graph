@@ -5,49 +5,49 @@ export const sampleGraphData = {
       id: "dept-engineering",
       type: "department",
       name: "Engineering",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 12
     },
     {
       id: "dept-design",
       type: "department", 
       name: "Design",
-      color: "#ff6b6b",
+      color: "#FFD700",
       size: 12
     },
     {
       id: "dept-product",
       type: "department",
       name: "Product",
-      color: "#4ecdc4",
+      color: "#00fff0",
       size: 12
     },
     {
       id: "dept-marketing",
       type: "department",
       name: "Marketing", 
-      color: "#45b7d1",
+      color: "#00fff0",
       size: 12
     },
     {
       id: "dept-sales",
       type: "department",
       name: "Sales", 
-      color: "#a8e6cf",
+      color: "#FFD700",
       size: 12
     },
     {
       id: "dept-hr",
       type: "department",
       name: "Human Resources", 
-      color: "#ffb347",
+      color: "#00fff0",
       size: 12
     },
     {
       id: "dept-finance",
       type: "department",
       name: "Finance", 
-      color: "#dda0dd",
+      color: "#00fff0",
       size: 12
     },
 
@@ -61,7 +61,7 @@ export const sampleGraphData = {
       mbti: "INTJ",
       ocean: { openness: 0.85, conscientiousness: 0.78, extraversion: 0.34, agreeableness: 0.62, neuroticism: 0.25 },
       enneagram: "5w4",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -73,7 +73,7 @@ export const sampleGraphData = {
       mbti: "ENFP",
       ocean: { openness: 0.92, conscientiousness: 0.45, extraversion: 0.81, agreeableness: 0.74, neuroticism: 0.38 },
       enneagram: "7w6",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -85,7 +85,7 @@ export const sampleGraphData = {
       mbti: "ISTJ",
       ocean: { openness: 0.45, conscientiousness: 0.94, extraversion: 0.28, agreeableness: 0.67, neuroticism: 0.19 },
       enneagram: "1w9",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -97,7 +97,7 @@ export const sampleGraphData = {
       mbti: "ISTP",
       ocean: { openness: 0.72, conscientiousness: 0.85, extraversion: 0.31, agreeableness: 0.58, neuroticism: 0.21 },
       enneagram: "5w6",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -109,7 +109,7 @@ export const sampleGraphData = {
       mbti: "ENTP",
       ocean: { openness: 0.89, conscientiousness: 0.52, extraversion: 0.76, agreeableness: 0.64, neuroticism: 0.33 },
       enneagram: "7w8",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -121,7 +121,7 @@ export const sampleGraphData = {
       mbti: "INTJ",
       ocean: { openness: 0.87, conscientiousness: 0.91, extraversion: 0.29, agreeableness: 0.56, neuroticism: 0.18 },
       enneagram: "5w4",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -133,7 +133,7 @@ export const sampleGraphData = {
       mbti: "ISFJ",
       ocean: { openness: 0.61, conscientiousness: 0.83, extraversion: 0.44, agreeableness: 0.86, neuroticism: 0.41 },
       enneagram: "6w5",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -145,7 +145,7 @@ export const sampleGraphData = {
       mbti: "INFP",
       ocean: { openness: 0.91, conscientiousness: 0.68, extraversion: 0.37, agreeableness: 0.79, neuroticism: 0.35 },
       enneagram: "4w5",
-      color: "#64ffda",
+      color: "#00fff0",
       size: 4
     },
 
@@ -159,7 +159,7 @@ export const sampleGraphData = {
       mbti: "INFP",
       ocean: { openness: 0.94, conscientiousness: 0.67, extraversion: 0.42, agreeableness: 0.89, neuroticism: 0.31 },
       enneagram: "4w5",
-      color: "#ff6b6b",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -171,7 +171,7 @@ export const sampleGraphData = {
       mbti: "ISFP",
       ocean: { openness: 0.88, conscientiousness: 0.71, extraversion: 0.39, agreeableness: 0.82, neuroticism: 0.44 },
       enneagram: "9w1",
-      color: "#ff6b6b",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -183,7 +183,7 @@ export const sampleGraphData = {
       mbti: "ENFP",
       ocean: { openness: 0.96, conscientiousness: 0.58, extraversion: 0.82, agreeableness: 0.77, neuroticism: 0.29 },
       enneagram: "7w6",
-      color: "#ff6b6b",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -195,7 +195,7 @@ export const sampleGraphData = {
       mbti: "ENFJ",
       ocean: { openness: 0.85, conscientiousness: 0.79, extraversion: 0.88, agreeableness: 0.91, neuroticism: 0.24 },
       enneagram: "2w3",
-      color: "#ff6b6b",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -207,7 +207,7 @@ export const sampleGraphData = {
       mbti: "INFJ",
       ocean: { openness: 0.89, conscientiousness: 0.84, extraversion: 0.41, agreeableness: 0.87, neuroticism: 0.32 },
       enneagram: "4w5",
-      color: "#ff6b6b",
+      color: "#FFD700",
       size: 4
     },
 
@@ -221,7 +221,7 @@ export const sampleGraphData = {
       mbti: "ENTJ",
       ocean: { openness: 0.76, conscientiousness: 0.91, extraversion: 0.78, agreeableness: 0.55, neuroticism: 0.22 },
       enneagram: "8w7",
-      color: "#4ecdc4",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -233,7 +233,7 @@ export const sampleGraphData = {
       mbti: "ESTJ",
       ocean: { openness: 0.68, conscientiousness: 0.93, extraversion: 0.81, agreeableness: 0.62, neuroticism: 0.19 },
       enneagram: "8w9",
-      color: "#4ecdc4",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -245,7 +245,7 @@ export const sampleGraphData = {
       mbti: "INTP",
       ocean: { openness: 0.84, conscientiousness: 0.73, extraversion: 0.33, agreeableness: 0.59, neuroticism: 0.27 },
       enneagram: "5w6",
-      color: "#4ecdc4",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -257,7 +257,7 @@ export const sampleGraphData = {
       mbti: "ESFJ",
       ocean: { openness: 0.71, conscientiousness: 0.87, extraversion: 0.79, agreeableness: 0.88, neuroticism: 0.31 },
       enneagram: "2w1",
-      color: "#4ecdc4",
+      color: "#00fff0",
       size: 4
     },
 
@@ -271,7 +271,7 @@ export const sampleGraphData = {
       mbti: "ESFJ",
       ocean: { openness: 0.73, conscientiousness: 0.82, extraversion: 0.85, agreeableness: 0.91, neuroticism: 0.33 },
       enneagram: "2w3",
-      color: "#45b7d1",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -283,7 +283,7 @@ export const sampleGraphData = {
       mbti: "ESTP",
       ocean: { openness: 0.78, conscientiousness: 0.64, extraversion: 0.92, agreeableness: 0.74, neuroticism: 0.28 },
       enneagram: "7w8",
-      color: "#45b7d1",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -295,7 +295,7 @@ export const sampleGraphData = {
       mbti: "ENFP",
       ocean: { openness: 0.93, conscientiousness: 0.61, extraversion: 0.87, agreeableness: 0.81, neuroticism: 0.36 },
       enneagram: "7w6",
-      color: "#45b7d1",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -307,7 +307,7 @@ export const sampleGraphData = {
       mbti: "ISTJ",
       ocean: { openness: 0.56, conscientiousness: 0.91, extraversion: 0.41, agreeableness: 0.72, neuroticism: 0.23 },
       enneagram: "1w9",
-      color: "#45b7d1",
+      color: "#00fff0",
       size: 4
     },
 
@@ -321,7 +321,7 @@ export const sampleGraphData = {
       mbti: "ESTJ",
       ocean: { openness: 0.65, conscientiousness: 0.89, extraversion: 0.94, agreeableness: 0.67, neuroticism: 0.21 },
       enneagram: "8w7",
-      color: "#a8e6cf",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -333,7 +333,7 @@ export const sampleGraphData = {
       mbti: "ESFP",
       ocean: { openness: 0.76, conscientiousness: 0.71, extraversion: 0.91, agreeableness: 0.84, neuroticism: 0.32 },
       enneagram: "7w6",
-      color: "#a8e6cf",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -345,7 +345,7 @@ export const sampleGraphData = {
       mbti: "ENFJ",
       ocean: { openness: 0.74, conscientiousness: 0.78, extraversion: 0.89, agreeableness: 0.92, neuroticism: 0.27 },
       enneagram: "2w3",
-      color: "#a8e6cf",
+      color: "#FFD700",
       size: 4
     },
     {
@@ -357,7 +357,7 @@ export const sampleGraphData = {
       mbti: "ENTP",
       ocean: { openness: 0.88, conscientiousness: 0.63, extraversion: 0.86, agreeableness: 0.71, neuroticism: 0.29 },
       enneagram: "7w8",
-      color: "#a8e6cf",
+      color: "#FFD700",
       size: 4
     },
 
@@ -371,7 +371,7 @@ export const sampleGraphData = {
       mbti: "ESFJ",
       ocean: { openness: 0.69, conscientiousness: 0.92, extraversion: 0.78, agreeableness: 0.94, neuroticism: 0.26 },
       enneagram: "2w1",
-      color: "#ffb347",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -383,7 +383,7 @@ export const sampleGraphData = {
       mbti: "ENFP",
       ocean: { openness: 0.84, conscientiousness: 0.67, extraversion: 0.88, agreeableness: 0.86, neuroticism: 0.34 },
       enneagram: "7w6",
-      color: "#ffb347",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -395,7 +395,7 @@ export const sampleGraphData = {
       mbti: "ISFJ",
       ocean: { openness: 0.58, conscientiousness: 0.87, extraversion: 0.52, agreeableness: 0.91, neuroticism: 0.38 },
       enneagram: "6w5",
-      color: "#ffb347",
+      color: "#00fff0",
       size: 4
     },
 
@@ -409,7 +409,7 @@ export const sampleGraphData = {
       mbti: "ENTJ",
       ocean: { openness: 0.72, conscientiousness: 0.96, extraversion: 0.74, agreeableness: 0.58, neuroticism: 0.19 },
       enneagram: "8w9",
-      color: "#dda0dd",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -421,7 +421,7 @@ export const sampleGraphData = {
       mbti: "ISTJ",
       ocean: { openness: 0.51, conscientiousness: 0.94, extraversion: 0.36, agreeableness: 0.69, neuroticism: 0.22 },
       enneagram: "1w9",
-      color: "#dda0dd",
+      color: "#00fff0",
       size: 4
     },
     {
@@ -433,7 +433,7 @@ export const sampleGraphData = {
       mbti: "ISFJ",
       ocean: { openness: 0.47, conscientiousness: 0.91, extraversion: 0.43, agreeableness: 0.83, neuroticism: 0.31 },
       enneagram: "6w5",
-      color: "#dda0dd",
+      color: "#00fff0",
       size: 4
     }
   ],

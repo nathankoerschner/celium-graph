@@ -5,11 +5,20 @@ import "./MyceliumGraph.css";
 import { UnrealBloomPass } from "https://esm.sh/three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 import * as d3 from "d3-force";
+
+// Color palette constants
+const COLORS = {
+  CYAN: "#00fff0", // Primary accent
+  GOLD: "#FFD700", // Secondary accent
+  LIGHT_GRAY: "#E0E0E0", // Text/labels
+  DARK_PURPLE: "#1F1B24", // Dark background
+  DARKER_PURPLE: "#101822", // Darker background
+};
+
 const MyceliumGraph = () => {
   const fgRef = useRef(null);
 
-  useEffect(() => {
-  }, []);
+  useEffect(() => {}, []);
   const [graphData, setGraphData] = useState(sampleGraphData);
   const [selectedNode, setSelectedNode] = useState(null);
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -175,7 +184,7 @@ const MyceliumGraph = () => {
     ctx.lineWidth = 3;
     ctx.strokeText(node.name, node.x, node.y + r + fontSize + 6);
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = COLORS.LIGHT_GRAY;
     ctx.fillText(node.name, node.x, node.y + r + fontSize + 6);
   };
 
@@ -185,64 +194,64 @@ const MyceliumGraph = () => {
     if (!source || !target) return;
 
     // Calculate link properties based on relation type
-    let strokeStyle = "#64ffda";
-    let lineWidth = .3;
+    let strokeStyle = COLORS.CYAN;
+    let lineWidth = 0.3;
     let pulseSpeed = 1;
     let pulseCount = 1;
 
     switch (relation) {
       case "belongs-to":
-        strokeStyle = "#64ffda";
+        strokeStyle = COLORS.CYAN;
         lineWidth = 2;
         pulseSpeed = 0.5;
         pulseCount = 1;
         break;
       case "collaboration":
-        strokeStyle = "#ff6b6b";
+        strokeStyle = COLORS.GOLD;
         lineWidth = 1.5;
         pulseSpeed = 1.2;
         pulseCount = 2;
         break;
       case "introvert-connection":
       case "extrovert-connection":
-        strokeStyle = "#4ecdc4";
+        strokeStyle = COLORS.DARK_PURPLE;
         lineWidth = 1;
         pulseSpeed = 0.8;
         pulseCount = 1;
         break;
       case "openness-similarity":
       case "creative-synergy":
-        strokeStyle = "#ffd93d";
+        strokeStyle = COLORS.GOLD;
         lineWidth = 1;
         pulseSpeed = 1.5;
         pulseCount = 3;
         break;
       case "complementary-traits":
-        strokeStyle = "#6c5ce7";
+        strokeStyle = COLORS.DARK_PURPLE;
         lineWidth = 1;
         pulseSpeed = 0.6;
         pulseCount = 1;
         break;
       case "high-conscientiousness":
-        strokeStyle = "#90ee90";
+        strokeStyle = COLORS.LIGHT_GRAY;
         lineWidth = 1;
         pulseSpeed = 0.4;
         pulseCount = 1;
         break;
       case "leadership-connection":
-        strokeStyle = "#ffa500";
+        strokeStyle = COLORS.GOLD;
         lineWidth = 1.5;
         pulseSpeed = 1.8;
         pulseCount = 2;
         break;
       case "mentorship":
-        strokeStyle = "#20b2aa";
+        strokeStyle = COLORS.CYAN;
         lineWidth = 1.2;
         pulseSpeed = 0.7;
         pulseCount = 1;
         break;
       default:
-        strokeStyle = "#64ffda";
+        strokeStyle = COLORS.CYAN;
         pulseSpeed = 1;
         pulseCount = 1;
     }
@@ -259,13 +268,15 @@ const MyceliumGraph = () => {
     const dx = target.x - source.x;
     const dy = target.y - source.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Control point for curve (perpendicular to line)
     const curvature = 0.3; // Adjust this value to control curve amount (0 = straight, higher = more curved)
     const controlOffset = distance * curvature;
-    const controlX = (source.x + target.x) / 2 + dy / distance * controlOffset;
-    const controlY = (source.y + target.y) / 2 - dx / distance * controlOffset;
-    
+    const controlX =
+      (source.x + target.x) / 2 + (dy / distance) * controlOffset;
+    const controlY =
+      (source.y + target.y) / 2 - (dx / distance) * controlOffset;
+
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
     ctx.quadraticCurveTo(controlX, controlY, target.x, target.y);
@@ -276,7 +287,7 @@ const MyceliumGraph = () => {
 
     // Create unique phase for this link
     const linkPhase =
-      (source.id + target.id)
+      (String(source.id) + String(target.id))
         .split("")
         .reduce((a, b) => a + b.charCodeAt(0), 0) * 0.01;
 
@@ -289,17 +300,19 @@ const MyceliumGraph = () => {
       if (pulsePhase < 2) {
         // Calculate position along the curve
         const progress = pulsePhase / 2; // 0 to 1 along the curve
-        
+
         // Use quadratic Bezier curve formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
         const t = progress;
         const oneMinusT = 1 - t;
-        
-        const pulseX = oneMinusT * oneMinusT * source.x + 
-                      2 * oneMinusT * t * controlX + 
-                      t * t * target.x;
-        const pulseY = oneMinusT * oneMinusT * source.y + 
-                      2 * oneMinusT * t * controlY + 
-                      t * t * target.y;
+
+        const pulseX =
+          oneMinusT * oneMinusT * source.x +
+          2 * oneMinusT * t * controlX +
+          t * t * target.x;
+        const pulseY =
+          oneMinusT * oneMinusT * source.y +
+          2 * oneMinusT * t * controlY +
+          t * t * target.y;
 
         // Pulse appearance - brighter and bigger at center, fading at edges
         const fadeIn = Math.min(progress * 6, 1); // faster fade in
@@ -345,7 +358,7 @@ const MyceliumGraph = () => {
         graphData={graphData}
         width={dimensions.width}
         height={dimensions.height}
-        backgroundColor="#121212"
+        backgroundColor={COLORS.DARKER_PURPLE}
         nodeCanvasObject={drawNode}
         nodeCanvasObjectMode={() => "replace"}
         nodePointerAreaPaint={(node, color, ctx) => {
@@ -384,49 +397,49 @@ const MyceliumGraph = () => {
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#64ffda" }}
+                style={{ backgroundColor: COLORS.CYAN }}
               ></div>
               <span>Engineering</span>
             </div>
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#ff6b6b" }}
+                style={{ backgroundColor: COLORS.GOLD }}
               ></div>
               <span>Design</span>
             </div>
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#4ecdc4" }}
+                style={{ backgroundColor: COLORS.CYAN }}
               ></div>
               <span>Product</span>
             </div>
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#45b7d1" }}
+                style={{ backgroundColor: COLORS.CYAN }}
               ></div>
               <span>Marketing</span>
             </div>
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#a8e6cf" }}
+                style={{ backgroundColor: COLORS.GOLD }}
               ></div>
               <span>Sales</span>
             </div>
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#ffb347" }}
+                style={{ backgroundColor: COLORS.CYAN }}
               ></div>
               <span>HR</span>
             </div>
             <div className="legend-item">
               <div
                 className="legend-dot"
-                style={{ backgroundColor: "#dda0dd" }}
+                style={{ backgroundColor: COLORS.CYAN }}
               ></div>
               <span>Finance</span>
             </div>
@@ -440,7 +453,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#64ffda",
+                  backgroundColor: COLORS.CYAN,
                   width: "20px",
                   height: "2px",
                 }}
@@ -451,7 +464,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#ff6b6b",
+                  backgroundColor: COLORS.GOLD,
                   width: "20px",
                   height: "1.5px",
                 }}
@@ -462,7 +475,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#4ecdc4",
+                  backgroundColor: COLORS.DARK_PURPLE,
                   width: "20px",
                   height: "1px",
                 }}
@@ -473,7 +486,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#ffd93d",
+                  backgroundColor: COLORS.GOLD,
                   width: "20px",
                   height: "1px",
                 }}
@@ -484,7 +497,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#6c5ce7",
+                  backgroundColor: COLORS.DARK_PURPLE,
                   width: "20px",
                   height: "1px",
                 }}
@@ -495,7 +508,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#ffa500",
+                  backgroundColor: COLORS.GOLD,
                   width: "20px",
                   height: "1.5px",
                 }}
@@ -506,7 +519,7 @@ const MyceliumGraph = () => {
               <div
                 className="legend-line"
                 style={{
-                  backgroundColor: "#20b2aa",
+                  backgroundColor: COLORS.CYAN,
                   width: "20px",
                   height: "1.2px",
                 }}
