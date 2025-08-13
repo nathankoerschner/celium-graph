@@ -22,7 +22,9 @@ const MyceliumGraph = () => {
   }, []);
   const [graphData, setGraphData] = useState(sampleGraphData);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [hoveredNode, setHoveredNode] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [animationTime, setAnimationTime] = useState(0);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -35,6 +37,21 @@ const MyceliumGraph = () => {
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
+
+  // Animation loop for dynamic glow effects
+  useEffect(() => {
+    let animationId;
+    const startTime = Date.now();
+    
+    const animate = () => {
+      const currentTime = (Date.now() - startTime) / 1000; // Convert to seconds
+      setAnimationTime(currentTime);
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
   }, []);
 
   // Initialize graph positioning
@@ -57,6 +74,7 @@ const MyceliumGraph = () => {
   };
 
   const handleNodeHover = (node) => {
+    setHoveredNode(node);
     document.body.style.cursor = node ? "pointer" : "default";
   };
 
@@ -76,16 +94,76 @@ const MyceliumGraph = () => {
 
   const drawNode = (node, ctx, globalScale) => {
     const r = getNodeSize(node);
-
+    const isHovered = hoveredNode === node;
+    
+    // Create unique animation phase for each node based on its ID
+    const nodePhase = (node.id ? node.id.charCodeAt(0) : 0) * 0.1;
+    const time = animationTime + nodePhase;
+    
+    // Dynamic glow calculations
+    const basePulse = 0.8 + 0.2 * Math.sin(time * 1.5); // Breathing effect
+    const organicVariation = 0.9 + 0.1 * Math.sin(time * 2.3 + nodePhase); // Organic movement
+    const microFlicker = 0.95 + 0.05 * Math.sin(time * 8 + nodePhase); // Subtle flicker
+    
+    // Combine all animation factors
+    const glowIntensity = basePulse * organicVariation * microFlicker;
+    
+    // Base glow effect with animation
+    const baseGlowSize = isHovered ? 25 : (12 + 8 * glowIntensity);
+    const glowAlpha = isHovered ? 1 : (0.6 + 0.3 * glowIntensity);
+    
     ctx.fillStyle = node.color;
     ctx.shadowColor = node.color;
-    ctx.shadowBlur = 10;
-
+    ctx.shadowBlur = baseGlowSize;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.globalAlpha = glowAlpha;
+    
+    // Additional animated outer glow rings
+    if (!isHovered) {
+      // Subtle outer ring that pulses
+      const outerRingAlpha = 0.1 + 0.15 * Math.sin(time * 1.2 + nodePhase);
+      const outerRingSize = r + 4 + 6 * Math.sin(time * 0.8 + nodePhase);
+      
+      ctx.strokeStyle = node.color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = outerRingAlpha;
+      
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, outerRingSize, 0, 2 * Math.PI);
+      ctx.stroke();
+    } else {
+      // Enhanced hover effect with multiple rings
+      const hoverRing1 = r + 8 + 4 * Math.sin(time * 3 + nodePhase);
+      const hoverRing2 = r + 16 + 6 * Math.sin(time * 2 + nodePhase);
+      
+      // Inner hover ring
+      ctx.strokeStyle = node.color;
+      ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 2.5);
+      
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, hoverRing1, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // Outer hover ring
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.2 + 0.1 * Math.sin(time * 1.8);
+      
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, hoverRing2, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    
+    // Reset alpha for main node
+    ctx.globalAlpha = 1;
+    
+    // Draw main node
     ctx.beginPath();
     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
-
     ctx.fill();
 
+    // Reset shadow
     ctx.shadowBlur = 0;
 
     const fontSize = Math.max(8, 10 / globalScale);
