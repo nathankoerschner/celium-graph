@@ -6,6 +6,16 @@
   background: #121212;
 }
 
+/* CSS Bloom Effect */
+.mycelium-graph-container canvas {
+  filter: 
+    drop-shadow(0 0 10px rgba(100, 255, 218, 0.3))
+    drop-shadow(0 0 20px rgba(100, 255, 218, 0.2))
+    drop-shadow(0 0 30px rgba(100, 255, 218, 0.1))
+    brightness(1.1)
+    contrast(1.1);
+}
+
 /* Legend/Key */
 .legend-container {
   position: absolute;

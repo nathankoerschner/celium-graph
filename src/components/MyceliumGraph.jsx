@@ -1,24 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import ForceGraph2D from "react-force-graph-2d";
+import ForceGraph3D from "react-force-graph-2d";
 import { sampleGraphData } from "../data/sampleData";
 import "./MyceliumGraph.css";
+import { UnrealBloomPass } from "https://esm.sh/three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 import * as d3 from "d3-force";
 const MyceliumGraph = () => {
   const fgRef = useRef(null);
 
   useEffect(() => {
-    const fg = fgRef.current;
-    fg.d3Force("charge").strength(-160).distanceMax(360);
-    fg.d3Force("link")
-      .distance((l) => (l.type === "dept" ? 200 : 100))
-      .strength(0.5);
-    fg.d3Force(
-      "collide",
-      d3.forceCollide((n) => getNodeSize(n) + 2),
-    ); // prevents node overlap
-    // optional: cluster people around their department
-    // fg.d3Force('deptRadial', d3.forceRadial(n => n.dept?.radius||0, n.dept?.x||0, n.dept?.y||0).strength(0.05));
   }, []);
   const [graphData, setGraphData] = useState(sampleGraphData);
   const [selectedNode, setSelectedNode] = useState(null);
@@ -98,8 +88,6 @@ const MyceliumGraph = () => {
 
     // Create unique animation phase for each node based on its ID
     const nodePhase = (node.id ? node.id.charCodeAt(8) : 0) * 0.1;
-    console.log("nodePhase is ", nodePhase);
-    console.log("nodeID is ", node.id);
     const time = animationTime + nodePhase;
 
     // Dynamic glow calculations
@@ -259,22 +247,32 @@ const MyceliumGraph = () => {
         pulseCount = 1;
     }
 
-    // Draw base line with reduced opacity
+    // Draw base line with reduced opacity and rounded caps
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = lineWidth;
     ctx.globalAlpha = 0.3 + 0.2 * strength;
     ctx.shadowColor = strokeStyle;
     ctx.shadowBlur = 3;
+    ctx.lineCap = "round";
 
-    ctx.beginPath();
-    ctx.moveTo(source.x, source.y);
-    ctx.lineTo(target.x, target.y);
-    ctx.stroke();
-
-    // Calculate line properties for pulse animation
+    // Calculate curved path
     const dx = target.x - source.x;
     const dy = target.y - source.y;
-    const lineLength = Math.sqrt(dx * dx + dy * dy);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Control point for curve (perpendicular to line)
+    const curvature = 0.3; // Adjust this value to control curve amount (0 = straight, higher = more curved)
+    const controlOffset = distance * curvature;
+    const controlX = (source.x + target.x) / 2 + dy / distance * controlOffset;
+    const controlY = (source.y + target.y) / 2 - dx / distance * controlOffset;
+    
+    ctx.beginPath();
+    ctx.moveTo(source.x, source.y);
+    ctx.quadraticCurveTo(controlX, controlY, target.x, target.y);
+    ctx.stroke();
+
+    // Calculate line properties for pulse animation (reuse curve calculations)
+    // dx, dy, distance, controlX, controlY already calculated above
 
     // Create unique phase for this link
     const linkPhase =
@@ -289,9 +287,19 @@ const MyceliumGraph = () => {
 
       // Only show pulse for part of the cycle
       if (pulsePhase < 2) {
-        const progress = pulsePhase / 2; // 0 to 1 along the line
-        const pulseX = source.x + dx * progress;
-        const pulseY = source.y + dy * progress;
+        // Calculate position along the curve
+        const progress = pulsePhase / 2; // 0 to 1 along the curve
+        
+        // Use quadratic Bezier curve formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+        const t = progress;
+        const oneMinusT = 1 - t;
+        
+        const pulseX = oneMinusT * oneMinusT * source.x + 
+                      2 * oneMinusT * t * controlX + 
+                      t * t * target.x;
+        const pulseY = oneMinusT * oneMinusT * source.y + 
+                      2 * oneMinusT * t * controlY + 
+                      t * t * target.y;
 
         // Pulse appearance - brighter and bigger at center, fading at edges
         const fadeIn = Math.min(progress * 6, 1); // faster fade in
@@ -332,7 +340,7 @@ const MyceliumGraph = () => {
 
   return (
     <div className="mycelium-graph-container">
-      <ForceGraph2D
+      <ForceGraph3D
         ref={fgRef}
         graphData={graphData}
         width={dimensions.width}
@@ -349,13 +357,13 @@ const MyceliumGraph = () => {
           ctx.fill();
         }}
         linkCanvasObject={drawLink}
-        linkCurvature={(l) => (l.type === "interDept" ? 0.5 : 0.9)}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
         onBackgroundClick={handleBackgroundClick}
         nodeRelSize={1}
         linkWidth={0}
-        nodeLabel=""
+        linkCurvature={1}
+        nodeLabel="id"
         cooldownTicks={300}
         d3AlphaDecay={0.01}
         d3VelocityDecay={0.15}
