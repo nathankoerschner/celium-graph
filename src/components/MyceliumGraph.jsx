@@ -174,7 +174,7 @@ const MyceliumGraph = () => {
         graphData={graphData}
         width={dimensions.width}
         height={dimensions.height}
-        backgroundColor="#0a0a0a"
+        backgroundColor="#121212"
         nodeCanvasObject={drawNode}
         nodeCanvasObjectMode={() => "replace"}
         nodePointerAreaPaint={(node, color, ctx) => {
