@@ -43,13 +43,13 @@ const MyceliumGraph = () => {
   useEffect(() => {
     let animationId;
     const startTime = Date.now();
-    
+
     const animate = () => {
       const currentTime = (Date.now() - startTime) / 1000; // Convert to seconds
       setAnimationTime(currentTime);
       animationId = requestAnimationFrame(animate);
     };
-    
+
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
   }, []);
@@ -95,40 +95,52 @@ const MyceliumGraph = () => {
   const drawNode = (node, ctx, globalScale) => {
     const r = getNodeSize(node);
     const isHovered = hoveredNode === node;
-    
+
     // Create unique animation phase for each node based on its ID
-    const nodePhase = (node.id ? node.id.charCodeAt(0) : 0) * 0.1;
+    const nodePhase = (node.id ? node.id.charCodeAt(8) : 0) * 0.1;
+    console.log("nodePhase is ", nodePhase);
+    console.log("nodeID is ", node.id);
     const time = animationTime + nodePhase;
-    
+
     // Dynamic glow calculations
     const basePulse = 0.8 + 0.2 * Math.sin(time * 1.5); // Breathing effect
     const organicVariation = 0.9 + 0.1 * Math.sin(time * 2.3 + nodePhase); // Organic movement
     const microFlicker = 0.95 + 0.05 * Math.sin(time * 8 + nodePhase); // Subtle flicker
-    
+
     // Combine all animation factors
     const glowIntensity = basePulse * organicVariation * microFlicker;
-    
+
     // Base glow effect with animation
-    const baseGlowSize = isHovered ? 25 : (12 + 8 * glowIntensity);
-    const glowAlpha = isHovered ? 1 : (0.6 + 0.3 * glowIntensity);
-    
+    const baseGlowSize = isHovered ? 25 : 12 + 8 * glowIntensity;
+    const glowAlpha = isHovered ? 1 : 0.6 + 0.3 * glowIntensity;
+
     ctx.fillStyle = node.color;
     ctx.shadowColor = node.color;
     ctx.shadowBlur = baseGlowSize;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.globalAlpha = glowAlpha;
-    
-    // Additional animated outer glow rings
+
+    // helper: triangle wave in [0,1]
+    const pingPong = (t) => 1 - Math.abs((t % 1) * 2 - 1);
+
     if (!isHovered) {
-      // Subtle outer ring that pulses
-      const outerRingAlpha = 0.1 + 0.15 * Math.sin(time * 1.2 + nodePhase);
-      const outerRingSize = r + 4 + 6 * Math.sin(time * 0.8 + nodePhase);
-      
+      const period = 6.8; // seconds per expand+contract
+      const minR = r + 4,
+        maxR = r + 14;
+
+      const phase = (time + nodePhase * 0.5) / period;
+      const p = pingPong(phase); // 0 → 1 → 0
+
+      const outerRingSize = minR + (maxR - minR) * p;
+
+      // Alpha fades in mid-animation, 0 at collapse/expand edges
+      const outerRingAlpha = Math.sin(p * Math.PI);
+
       ctx.strokeStyle = node.color;
       ctx.lineWidth = 2;
       ctx.globalAlpha = outerRingAlpha;
-      
+
       ctx.beginPath();
       ctx.arc(node.x, node.y, outerRingSize, 0, 2 * Math.PI);
       ctx.stroke();
@@ -136,28 +148,28 @@ const MyceliumGraph = () => {
       // Enhanced hover effect with multiple rings
       const hoverRing1 = r + 8 + 4 * Math.sin(time * 3 + nodePhase);
       const hoverRing2 = r + 16 + 6 * Math.sin(time * 2 + nodePhase);
-      
+
       // Inner hover ring
       ctx.strokeStyle = node.color;
       ctx.lineWidth = 3;
       ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 2.5);
-      
+
       ctx.beginPath();
       ctx.arc(node.x, node.y, hoverRing1, 0, 2 * Math.PI);
       ctx.stroke();
-      
+
       // Outer hover ring
       ctx.lineWidth = 2;
       ctx.globalAlpha = 0.2 + 0.1 * Math.sin(time * 1.8);
-      
+
       ctx.beginPath();
       ctx.arc(node.x, node.y, hoverRing2, 0, 2 * Math.PI);
       ctx.stroke();
     }
-    
+
     // Reset alpha for main node
     ctx.globalAlpha = 1;
-    
+
     // Draw main node
     ctx.beginPath();
     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
@@ -187,58 +199,131 @@ const MyceliumGraph = () => {
     // Calculate link properties based on relation type
     let strokeStyle = "#64ffda";
     let lineWidth = 1;
+    let pulseSpeed = 1;
+    let pulseCount = 1;
 
     switch (relation) {
       case "belongs-to":
         strokeStyle = "#64ffda";
         lineWidth = 2;
+        pulseSpeed = 0.5;
+        pulseCount = 1;
         break;
       case "collaboration":
         strokeStyle = "#ff6b6b";
         lineWidth = 1.5;
+        pulseSpeed = 1.2;
+        pulseCount = 2;
         break;
       case "introvert-connection":
       case "extrovert-connection":
         strokeStyle = "#4ecdc4";
         lineWidth = 1;
+        pulseSpeed = 0.8;
+        pulseCount = 1;
         break;
       case "openness-similarity":
       case "creative-synergy":
         strokeStyle = "#ffd93d";
         lineWidth = 1;
+        pulseSpeed = 1.5;
+        pulseCount = 3;
         break;
       case "complementary-traits":
         strokeStyle = "#6c5ce7";
         lineWidth = 1;
+        pulseSpeed = 0.6;
+        pulseCount = 1;
         break;
       case "high-conscientiousness":
         strokeStyle = "#90ee90";
         lineWidth = 1;
+        pulseSpeed = 0.4;
+        pulseCount = 1;
         break;
       case "leadership-connection":
         strokeStyle = "#ffa500";
         lineWidth = 1.5;
+        pulseSpeed = 1.8;
+        pulseCount = 2;
         break;
       case "mentorship":
         strokeStyle = "#20b2aa";
         lineWidth = 1.2;
+        pulseSpeed = 0.7;
+        pulseCount = 1;
         break;
       default:
         strokeStyle = "#64ffda";
+        pulseSpeed = 1;
+        pulseCount = 1;
     }
 
-    // Set drawing properties
+    // Draw base line with reduced opacity
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = lineWidth;
-    ctx.globalAlpha = 0.7 + 0.3 * strength;
+    ctx.globalAlpha = 0.3 + 0.2 * strength;
     ctx.shadowColor = strokeStyle;
-    ctx.shadowBlur = 5;
+    ctx.shadowBlur = 3;
 
-    // Draw straight line (simplified)
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
     ctx.lineTo(target.x, target.y);
     ctx.stroke();
+
+    // Calculate line properties for pulse animation
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const lineLength = Math.sqrt(dx * dx + dy * dy);
+
+    // Create unique phase for this link
+    const linkPhase =
+      (source.id + target.id)
+        .split("")
+        .reduce((a, b) => a + b.charCodeAt(0), 0) * 0.01;
+
+    // Draw animated pulses
+    for (let i = 0; i < pulseCount; i++) {
+      const pulsePhase =
+        (animationTime * pulseSpeed + linkPhase + i * 1.2) % 2.5; // Faster 2.5-second cycle
+
+      // Only show pulse for part of the cycle
+      if (pulsePhase < 2) {
+        const progress = pulsePhase / 2; // 0 to 1 along the line
+        const pulseX = source.x + dx * progress;
+        const pulseY = source.y + dy * progress;
+
+        // Pulse appearance - brighter and bigger at center, fading at edges
+        const fadeIn = Math.min(progress * 6, 1); // faster fade in
+        const fadeOut = Math.min((1 - progress) * 6, 1); // faster fade out
+        const pulseFade = fadeIn * fadeOut;
+
+        // Check for periodic large pulse (every ~8 seconds)
+        const largePulsePhase = (animationTime * pulseSpeed + linkPhase) % 8;
+        const isLargePulse = largePulsePhase < 0.3; // Large pulse for brief moment
+
+        // Adjust size and opacity based on pulse type
+        const baseSize = isLargePulse ? 4 : 2;
+        const maxSize = isLargePulse ? 7 : 3;
+        const baseOpacity = isLargePulse ? 0.6 : 0.3;
+
+        // Draw pulse as a glowing circle
+        ctx.globalAlpha = pulseFade * baseOpacity;
+        ctx.fillStyle = strokeStyle;
+        ctx.shadowColor = strokeStyle;
+        ctx.shadowBlur = isLargePulse ? 12 : 6;
+
+        ctx.beginPath();
+        ctx.arc(
+          pulseX,
+          pulseY,
+          baseSize + pulseFade * (maxSize - baseSize),
+          0,
+          2 * Math.PI,
+        );
+        ctx.fill();
+      }
+    }
 
     // Reset properties
     ctx.globalAlpha = 1;
@@ -289,31 +374,52 @@ const MyceliumGraph = () => {
           <h4>Departments</h4>
           <div className="legend-items">
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#64ffda"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#64ffda" }}
+              ></div>
               <span>Engineering</span>
             </div>
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#ff6b6b"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#ff6b6b" }}
+              ></div>
               <span>Design</span>
             </div>
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#4ecdc4"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#4ecdc4" }}
+              ></div>
               <span>Product</span>
             </div>
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#45b7d1"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#45b7d1" }}
+              ></div>
               <span>Marketing</span>
             </div>
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#a8e6cf"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#a8e6cf" }}
+              ></div>
               <span>Sales</span>
             </div>
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#ffb347"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#ffb347" }}
+              ></div>
               <span>HR</span>
             </div>
             <div className="legend-item">
-              <div className="legend-dot" style={{backgroundColor: "#dda0dd"}}></div>
+              <div
+                className="legend-dot"
+                style={{ backgroundColor: "#dda0dd" }}
+              ></div>
               <span>Finance</span>
             </div>
           </div>
@@ -323,31 +429,80 @@ const MyceliumGraph = () => {
           <h4>Connections</h4>
           <div className="legend-items">
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#64ffda", width: "20px", height: "2px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#64ffda",
+                  width: "20px",
+                  height: "2px",
+                }}
+              ></div>
               <span>Department</span>
             </div>
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#ff6b6b", width: "20px", height: "1.5px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#ff6b6b",
+                  width: "20px",
+                  height: "1.5px",
+                }}
+              ></div>
               <span>Collaboration</span>
             </div>
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#4ecdc4", width: "20px", height: "1px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#4ecdc4",
+                  width: "20px",
+                  height: "1px",
+                }}
+              ></div>
               <span>Personality Match</span>
             </div>
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#ffd93d", width: "20px", height: "1px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#ffd93d",
+                  width: "20px",
+                  height: "1px",
+                }}
+              ></div>
               <span>Creative Synergy</span>
             </div>
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#6c5ce7", width: "20px", height: "1px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#6c5ce7",
+                  width: "20px",
+                  height: "1px",
+                }}
+              ></div>
               <span>Complementary</span>
             </div>
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#ffa500", width: "20px", height: "1.5px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#ffa500",
+                  width: "20px",
+                  height: "1.5px",
+                }}
+              ></div>
               <span>Leadership</span>
             </div>
             <div className="legend-item">
-              <div className="legend-line" style={{backgroundColor: "#20b2aa", width: "20px", height: "1.2px"}}></div>
+              <div
+                className="legend-line"
+                style={{
+                  backgroundColor: "#20b2aa",
+                  width: "20px",
+                  height: "1.2px",
+                }}
+              ></div>
               <span>Mentorship</span>
             </div>
           </div>
