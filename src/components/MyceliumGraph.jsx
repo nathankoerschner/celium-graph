@@ -1,14 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import ForceGraph3D from "react-force-graph-2d";
+import ForceGraph3D from "react-force-graph-3d";
 import { sampleGraphData } from "../data/sampleData";
 import "./MyceliumGraph.css";
-import { UnrealBloomPass } from "https://esm.sh/three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import * as THREE from "three";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { Vector2 } from "three";
 
 import * as d3 from "d3-force";
 const MyceliumGraph = () => {
   const fgRef = useRef(null);
 
   useEffect(() => {
+    const fg = fgRef.current;
+    if (fg) {
+      // Set up 3D forces
+      fg.d3Force("charge").strength(-300).distanceMax(500);
+      fg.d3Force("link")
+        .distance((l) => (l.type === "dept" ? 150 : 80))
+        .strength(0.4);
+      fg.d3Force(
+        "collide",
+        d3.forceCollide((n) => getNodeSize(n) + 5),
+      );
+
+    }
   }, []);
   const [graphData, setGraphData] = useState(sampleGraphData);
   const [selectedNode, setSelectedNode] = useState(null);
@@ -29,17 +44,26 @@ const MyceliumGraph = () => {
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  // Animation loop for dynamic glow effects
+  // Very simple animation loop for hover effects only
   useEffect(() => {
     let animationId;
-    const startTime = Date.now();
-
+    
     const animate = () => {
-      const currentTime = (Date.now() - startTime) / 1000; // Convert to seconds
-      setAnimationTime(currentTime);
+      // Update only hover opacity (very simple)
+      if (fgRef.current) {
+        const scene = fgRef.current.scene();
+        if (scene) {
+          scene.traverse((object) => {
+            if (object.userData && object.userData.material) {
+              object.userData.material.opacity = object.userData.isHovered() ? 1.0 : 0.8;
+            }
+          });
+        }
+      }
+      
       animationId = requestAnimationFrame(animate);
     };
-
+    
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
   }, []);
@@ -82,261 +106,154 @@ const MyceliumGraph = () => {
     return node.size || 4;
   };
 
-  const drawNode = (node, ctx, globalScale) => {
+  const createNodeObject = (node) => {
     const r = getNodeSize(node);
     const isHovered = hoveredNode === node;
 
-    // Create unique animation phase for each node based on its ID
-    const nodePhase = (node.id ? node.id.charCodeAt(8) : 0) * 0.1;
-    const time = animationTime + nodePhase;
+    // Simple sphere geometry
+    const geometry = new THREE.SphereGeometry(r, 16, 12);
 
-    // Dynamic glow calculations
-    const basePulse = 0.8 + 0.2 * Math.sin(time * 1.5); // Breathing effect
-    const organicVariation = 0.9 + 0.1 * Math.sin(time * 2.3 + nodePhase); // Organic movement
-    const microFlicker = 0.95 + 0.05 * Math.sin(time * 8 + nodePhase); // Subtle flicker
+    // Simple material with basic properties
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(node.color),
+      transparent: true,
+      opacity: isHovered ? 1.0 : 0.8,
+    });
 
-    // Combine all animation factors
-    const glowIntensity = basePulse * organicVariation * microFlicker;
+    const sphere = new THREE.Mesh(geometry, material);
+    
+    // Store reference for hover updates
+    sphere.userData = {
+      node,
+      isHovered: () => hoveredNode === node,
+      material
+    };
 
-    // Base glow effect with animation
-    const baseGlowSize = isHovered ? 25 : 12 + 8 * glowIntensity;
-    const glowAlpha = isHovered ? 1 : 0.6 + 0.3 * glowIntensity;
-
-    ctx.fillStyle = node.color;
-    ctx.shadowColor = node.color;
-    ctx.shadowBlur = baseGlowSize;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.globalAlpha = glowAlpha;
-
-    // helper: triangle wave in [0,1]
-    const pingPong = (t) => 1 - Math.abs((t % 1) * 2 - 1);
-
-    if (!isHovered) {
-      const period = 6.8; // seconds per expand+contract
-      const minR = r + 4,
-        maxR = r + 14;
-
-      const phase = (time + nodePhase * 0.5) / period;
-      const p = pingPong(phase); // 0 → 1 → 0
-
-      const outerRingSize = minR + (maxR - minR) * p;
-
-      // Alpha fades in mid-animation, 0 at collapse/expand edges
-      const outerRingAlpha = Math.sin(p * Math.PI);
-
-      ctx.strokeStyle = node.color;
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = outerRingAlpha;
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, outerRingSize, 0, 2 * Math.PI);
-      ctx.stroke();
-    } else {
-      // Enhanced hover effect with multiple rings
-      const hoverRing1 = r + 8 + 4 * Math.sin(time * 3 + nodePhase);
-      const hoverRing2 = r + 16 + 6 * Math.sin(time * 2 + nodePhase);
-
-      // Inner hover ring
-      ctx.strokeStyle = node.color;
-      ctx.lineWidth = 3;
-      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 2.5);
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, hoverRing1, 0, 2 * Math.PI);
-      ctx.stroke();
-
-      // Outer hover ring
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.2 + 0.1 * Math.sin(time * 1.8);
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, hoverRing2, 0, 2 * Math.PI);
-      ctx.stroke();
-    }
-
-    // Reset alpha for main node
-    ctx.globalAlpha = 1;
-
-    // Draw main node
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // Reset shadow
-    ctx.shadowBlur = 0;
-
-    const fontSize = Math.max(8, 10 / globalScale);
-    ctx.font = `${fontSize}px Inter, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.strokeStyle = "rgba(0,0,0,0.8)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(node.name, node.x, node.y + r + fontSize + 6);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(node.name, node.x, node.y + r + fontSize + 6);
+    return sphere;
   };
 
-  const drawLink = (link, ctx, globalScale) => {
+  const createLinkObject = (link) => {
     const { source, target, relation, strength = 1 } = link;
 
-    if (!source || !target) return;
+    if (!source || !target) return null;
 
-    // Calculate link properties based on relation type
-    let strokeStyle = "#64ffda";
+    // Get link properties
+    let color = "#64ffda";
     let lineWidth = 1;
     let pulseSpeed = 1;
     let pulseCount = 1;
 
     switch (relation) {
       case "belongs-to":
-        strokeStyle = "#64ffda";
+        color = "#64ffda";
         lineWidth = 2;
         pulseSpeed = 0.5;
         pulseCount = 1;
         break;
       case "collaboration":
-        strokeStyle = "#ff6b6b";
+        color = "#ff6b6b";
         lineWidth = 1.5;
         pulseSpeed = 1.2;
         pulseCount = 2;
         break;
       case "introvert-connection":
       case "extrovert-connection":
-        strokeStyle = "#4ecdc4";
+        color = "#4ecdc4";
         lineWidth = 1;
         pulseSpeed = 0.8;
         pulseCount = 1;
         break;
       case "openness-similarity":
       case "creative-synergy":
-        strokeStyle = "#ffd93d";
+        color = "#ffd93d";
         lineWidth = 1;
         pulseSpeed = 1.5;
         pulseCount = 3;
         break;
       case "complementary-traits":
-        strokeStyle = "#6c5ce7";
+        color = "#6c5ce7";
         lineWidth = 1;
         pulseSpeed = 0.6;
         pulseCount = 1;
         break;
       case "high-conscientiousness":
-        strokeStyle = "#90ee90";
+        color = "#90ee90";
         lineWidth = 1;
         pulseSpeed = 0.4;
         pulseCount = 1;
         break;
       case "leadership-connection":
-        strokeStyle = "#ffa500";
+        color = "#ffa500";
         lineWidth = 1.5;
         pulseSpeed = 1.8;
         pulseCount = 2;
         break;
       case "mentorship":
-        strokeStyle = "#20b2aa";
+        color = "#20b2aa";
         lineWidth = 1.2;
         pulseSpeed = 0.7;
         pulseCount = 1;
         break;
       default:
-        strokeStyle = "#64ffda";
+        color = "#64ffda";
         pulseSpeed = 1;
         pulseCount = 1;
     }
 
-    // Draw base line with reduced opacity and rounded caps
-    ctx.strokeStyle = strokeStyle;
-    ctx.lineWidth = lineWidth;
-    ctx.globalAlpha = 0.3 + 0.2 * strength;
-    ctx.shadowColor = strokeStyle;
-    ctx.shadowBlur = 3;
-    ctx.lineCap = "round";
+    // Create curved path
+    const start = new THREE.Vector3(source.x, source.y, source.z || 0);
+    const end = new THREE.Vector3(target.x, target.y, target.z || 0);
+    const middle = new THREE.Vector3()
+      .addVectors(start, end)
+      .multiplyScalar(0.5);
 
-    // Calculate curved path
-    const dx = target.x - source.x;
-    const dy = target.y - source.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    // Control point for curve (perpendicular to line)
-    const curvature = 0.3; // Adjust this value to control curve amount (0 = straight, higher = more curved)
-    const controlOffset = distance * curvature;
-    const controlX = (source.x + target.x) / 2 + dy / distance * controlOffset;
-    const controlY = (source.y + target.y) / 2 - dx / distance * controlOffset;
-    
-    ctx.beginPath();
-    ctx.moveTo(source.x, source.y);
-    ctx.quadraticCurveTo(controlX, controlY, target.x, target.y);
-    ctx.stroke();
+    // Add curvature by offsetting the middle point
+    const direction = new THREE.Vector3().subVectors(end, start);
+    const perpendicular = new THREE.Vector3(
+      -direction.y,
+      direction.x,
+      direction.z * 0.3,
+    ).normalize();
+    middle.add(perpendicular.multiplyScalar(direction.length() * 0.2));
 
-    // Calculate line properties for pulse animation (reuse curve calculations)
-    // dx, dy, distance, controlX, controlY already calculated above
+    // Create curve
+    const curve = new THREE.QuadraticBezierCurve3(start, middle, end);
+    const points = curve.getPoints(50);
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-    // Create unique phase for this link
-    const linkPhase =
-      (source.id + target.id)
-        .split("")
-        .reduce((a, b) => a + b.charCodeAt(0), 0) * 0.01;
+    const material = new THREE.LineBasicMaterial({
+      color: new THREE.Color(color),
+      transparent: true,
+      opacity: 0.4 + 0.2 * strength,
+      linewidth: lineWidth,
+    });
 
-    // Draw animated pulses
-    for (let i = 0; i < pulseCount; i++) {
-      const pulsePhase =
-        (animationTime * pulseSpeed + linkPhase + i * 1.2) % 2.5; // Faster 2.5-second cycle
+    const line = new THREE.Line(geometry, material);
 
-      // Only show pulse for part of the cycle
-      if (pulsePhase < 2) {
-        // Calculate position along the curve
-        const progress = pulsePhase / 2; // 0 to 1 along the curve
-        
-        // Use quadratic Bezier curve formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
-        const t = progress;
-        const oneMinusT = 1 - t;
-        
-        const pulseX = oneMinusT * oneMinusT * source.x + 
-                      2 * oneMinusT * t * controlX + 
-                      t * t * target.x;
-        const pulseY = oneMinusT * oneMinusT * source.y + 
-                      2 * oneMinusT * t * controlY + 
-                      t * t * target.y;
+    // Create pulse spheres group
+    const pulseGroup = new THREE.Group();
 
-        // Pulse appearance - brighter and bigger at center, fading at edges
-        const fadeIn = Math.min(progress * 6, 1); // faster fade in
-        const fadeOut = Math.min((1 - progress) * 6, 1); // faster fade out
-        const pulseFade = fadeIn * fadeOut;
+    // Store data for animation
+    line.userData = {
+      curve,
+      color,
+      pulseSpeed,
+      pulseCount,
+      linkPhase:
+        (String(source.id) + String(target.id))
+          .split("")
+          .reduce((a, b) => a + b.charCodeAt(0), 0) * 0.01,
 
-        // Check for periodic large pulse (every ~8 seconds)
-        const largePulsePhase = (animationTime * pulseSpeed + linkPhase) % 8;
-        const isLargePulse = largePulsePhase < 0.3; // Large pulse for brief moment
+      pulseGroup,
+    };
 
-        // Adjust size and opacity based on pulse type
-        const baseSize = isLargePulse ? 4 : 2;
-        const maxSize = isLargePulse ? 7 : 3;
-        const baseOpacity = isLargePulse ? 0.6 : 0.3;
+    const linkGroup = new THREE.Group();
+    linkGroup.add(line);
+    linkGroup.add(pulseGroup);
 
-        // Draw pulse as a glowing circle
-        ctx.globalAlpha = pulseFade * baseOpacity;
-        ctx.fillStyle = strokeStyle;
-        ctx.shadowColor = strokeStyle;
-        ctx.shadowBlur = isLargePulse ? 12 : 6;
-
-        ctx.beginPath();
-        ctx.arc(
-          pulseX,
-          pulseY,
-          baseSize + pulseFade * (maxSize - baseSize),
-          0,
-          2 * Math.PI,
-        );
-        ctx.fill();
-      }
-    }
-
-    // Reset properties
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur = 0;
+    return line;
   };
+
 
   return (
     <div className="mycelium-graph-container">
@@ -346,24 +263,14 @@ const MyceliumGraph = () => {
         width={dimensions.width}
         height={dimensions.height}
         backgroundColor="#121212"
-        nodeCanvasObject={drawNode}
-        nodeCanvasObjectMode={() => "replace"}
-        nodePointerAreaPaint={(node, color, ctx) => {
-          const r = getNodeSize(node); // same as drawNode
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
-
-          ctx.fillStyle = color; // required: lib samples this color
-          ctx.fill();
-        }}
-        linkCanvasObject={drawLink}
+        nodeThreeObject={createNodeObject}
+        linkThreeObject={createLinkObject}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
         onBackgroundClick={handleBackgroundClick}
         nodeRelSize={1}
         linkWidth={0}
-        linkCurvature={1}
-        nodeLabel="id"
+        nodeLabel=""
         cooldownTicks={300}
         d3AlphaDecay={0.01}
         d3VelocityDecay={0.15}
