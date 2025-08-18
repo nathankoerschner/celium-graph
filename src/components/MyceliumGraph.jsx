@@ -82,9 +82,9 @@ const MyceliumGraph = () => {
 
   const getNodeSize = (node) => {
     if (node.type === "department") {
-      return node.size || 12;
+      return 4;
     }
-    return node.size || 4;
+    return 1.5;
   };
 
   const drawNode = (node, ctx, globalScale) => {
@@ -122,7 +122,7 @@ const MyceliumGraph = () => {
     if (!source || !target) return;
 
     // Link styling
-    const strokeStyle = relation === "belongs-to" ? COLORS.CYAN : COLORS.GOLD;
+    const strokeStyle = relation === "belongs-to" ? COLORS.CYAN : COLORS.GOLD; // TODO
     const lineWidth = relation === "belongs-to" ? 0.3 : 0.2;
 
     ctx.strokeStyle = strokeStyle;
@@ -135,16 +135,15 @@ const MyceliumGraph = () => {
     const dy = target.y - source.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Control point for curve
-    const sourceVal = link?.source?.id
-      ? link.source.id.charCodeAt(7) / 1000
-      : 0.2;
+    let curvature =
+      link?.source?.id && link?.target?.id
+        ? (link.target.id.charCodeAt(7) / 1000) * 3
+        : 0.2;
 
-    const curvature = link?.target?.id
-      ? (link.target.id.charCodeAt(7) / 1000) * 3
-      : 0.2;
+    if (Number.isNaN(curvature)) {
+      curvature = 0.2;
+    }
 
-    console.log(sourceVal, curvature);
     const controlOffset = distance * curvature;
     const controlX =
       (source.x + target.x) / 2 + (dy / distance) * controlOffset;
