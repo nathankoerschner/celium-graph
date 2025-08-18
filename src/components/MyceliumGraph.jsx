@@ -2,9 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import ForceGraph3D from "react-force-graph-2d";
 import { sampleGraphData } from "../data/sampleData";
 import "./MyceliumGraph.css";
-import { UnrealBloomPass } from "https://esm.sh/three/examples/jsm/postprocessing/UnrealBloomPass.js";
-
-import * as d3 from "d3-force";
 
 // Color palette constants
 const COLORS = {
@@ -24,12 +21,11 @@ const MyceliumGraph = () => {
   const [hoveredNode, setHoveredNode] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [animationTime, setAnimationTime] = useState(0);
-
   useEffect(() => {
     const updateDimensions = () => {
       setDimensions({
         width: window.innerWidth,
-        height: window.innerHeight - 100, // Account for header
+        height: window.innerHeight - 100,
       });
     };
 
@@ -38,13 +34,13 @@ const MyceliumGraph = () => {
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  // Animation loop for dynamic glow effects
+  // Animation loop for synchronized breathing network
   useEffect(() => {
     let animationId;
     const startTime = Date.now();
 
     const animate = () => {
-      const currentTime = (Date.now() - startTime) / 1000; // Convert to seconds
+      const currentTime = (Date.now() - startTime) / 1000;
       setAnimationTime(currentTime);
       animationId = requestAnimationFrame(animate);
     };
@@ -95,77 +91,12 @@ const MyceliumGraph = () => {
     const r = getNodeSize(node);
     const isHovered = hoveredNode === node;
 
-    // Create unique animation phase for each node based on its ID
-    const nodePhase = (node.id ? node.id.charCodeAt(8) : 0) * 0.1;
-    const time = animationTime + nodePhase;
-
-    // Dynamic glow calculations
-    const basePulse = 0.8 + 0.2 * Math.sin(time * 1.5); // Breathing effect
-    const organicVariation = 0.9 + 0.1 * Math.sin(time * 2.3 + nodePhase); // Organic movement
-    const microFlicker = 0.95 + 0.05 * Math.sin(time * 8 + nodePhase); // Subtle flicker
-
-    // Combine all animation factors
-    const glowIntensity = basePulse * organicVariation * microFlicker;
-
-    // Base glow effect with animation
-    const baseGlowSize = isHovered ? 25 : 12 + 8 * glowIntensity;
-    const glowAlpha = isHovered ? 1 : 0.6 + 0.3 * glowIntensity;
-
+    // Simple glow effect
     ctx.fillStyle = node.color;
     ctx.shadowColor = node.color;
-    ctx.shadowBlur = baseGlowSize;
+    ctx.shadowBlur = isHovered ? 15 : 8;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    ctx.globalAlpha = glowAlpha;
-
-    // helper: triangle wave in [0,1]
-    const pingPong = (t) => 1 - Math.abs((t % 1) * 2 - 1);
-
-    if (!isHovered) {
-      const period = 6.8; // seconds per expand+contract
-      const minR = r + 4,
-        maxR = r + 14;
-
-      const phase = (time + nodePhase * 0.5) / period;
-      const p = pingPong(phase); // 0 → 1 → 0
-
-      const outerRingSize = minR + (maxR - minR) * p;
-
-      // Alpha fades in mid-animation, 0 at collapse/expand edges
-      const outerRingAlpha = Math.sin(p * Math.PI);
-
-      ctx.strokeStyle = node.color;
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = outerRingAlpha;
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, outerRingSize, 0, 2 * Math.PI);
-      ctx.stroke();
-    } else {
-      // Enhanced hover effect with multiple rings
-      const hoverRing1 = r + 8 + 4 * Math.sin(time * 3 + nodePhase);
-      const hoverRing2 = r + 16 + 6 * Math.sin(time * 2 + nodePhase);
-
-      // Inner hover ring
-      ctx.strokeStyle = node.color;
-      ctx.lineWidth = 3;
-      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 2.5);
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, hoverRing1, 0, 2 * Math.PI);
-      ctx.stroke();
-
-      // Outer hover ring
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.2 + 0.1 * Math.sin(time * 1.8);
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, hoverRing2, 0, 2 * Math.PI);
-      ctx.stroke();
-    }
-
-    // Reset alpha for main node
-    ctx.globalAlpha = 1;
 
     // Draw main node
     ctx.beginPath();
@@ -175,93 +106,28 @@ const MyceliumGraph = () => {
     // Reset shadow
     ctx.shadowBlur = 0;
 
+    // Draw label
     const fontSize = Math.max(8, 10 / globalScale);
     ctx.font = `${fontSize}px Inter, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
-    ctx.strokeStyle = "rgba(0,0,0,0.8)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(node.name, node.x, node.y + r + fontSize + 6);
 
     ctx.fillStyle = COLORS.LIGHT_GRAY;
     ctx.fillText(node.name, node.x, node.y + r + fontSize + 6);
   };
 
   const drawLink = (link, ctx, globalScale) => {
-    const { source, target, relation, strength = 1 } = link;
+    const { source, target, relation } = link;
 
     if (!source || !target) return;
 
-    // Calculate link properties based on relation type
-    let strokeStyle = COLORS.CYAN;
-    let lineWidth = 0.3;
-    let pulseSpeed = 1;
-    let pulseCount = 1;
+    // Link styling
+    const strokeStyle = relation === "belongs-to" ? COLORS.CYAN : COLORS.GOLD;
+    const lineWidth = relation === "belongs-to" ? 0.3 : 0.2;
 
-    switch (relation) {
-      case "belongs-to":
-        strokeStyle = COLORS.CYAN;
-        lineWidth = 2;
-        pulseSpeed = 0.5;
-        pulseCount = 1;
-        break;
-      case "collaboration":
-        strokeStyle = COLORS.GOLD;
-        lineWidth = 1.5;
-        pulseSpeed = 1.2;
-        pulseCount = 2;
-        break;
-      case "introvert-connection":
-      case "extrovert-connection":
-        strokeStyle = COLORS.DARK_PURPLE;
-        lineWidth = 1;
-        pulseSpeed = 0.8;
-        pulseCount = 1;
-        break;
-      case "openness-similarity":
-      case "creative-synergy":
-        strokeStyle = COLORS.GOLD;
-        lineWidth = 1;
-        pulseSpeed = 1.5;
-        pulseCount = 3;
-        break;
-      case "complementary-traits":
-        strokeStyle = COLORS.DARK_PURPLE;
-        lineWidth = 1;
-        pulseSpeed = 0.6;
-        pulseCount = 1;
-        break;
-      case "high-conscientiousness":
-        strokeStyle = COLORS.LIGHT_GRAY;
-        lineWidth = 1;
-        pulseSpeed = 0.4;
-        pulseCount = 1;
-        break;
-      case "leadership-connection":
-        strokeStyle = COLORS.GOLD;
-        lineWidth = 1.5;
-        pulseSpeed = 1.8;
-        pulseCount = 2;
-        break;
-      case "mentorship":
-        strokeStyle = COLORS.CYAN;
-        lineWidth = 1.2;
-        pulseSpeed = 0.7;
-        pulseCount = 1;
-        break;
-      default:
-        strokeStyle = COLORS.CYAN;
-        pulseSpeed = 1;
-        pulseCount = 1;
-    }
-
-    // Draw base line with reduced opacity and rounded caps
     ctx.strokeStyle = strokeStyle;
     ctx.lineWidth = lineWidth;
-    ctx.globalAlpha = 0.3 + 0.2 * strength;
-    ctx.shadowColor = strokeStyle;
-    ctx.shadowBlur = 3;
+    ctx.globalAlpha = 0.6;
     ctx.lineCap = "round";
 
     // Calculate curved path
@@ -269,84 +135,64 @@ const MyceliumGraph = () => {
     const dy = target.y - source.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Control point for curve (perpendicular to line)
-    const curvature = 0.3; // Adjust this value to control curve amount (0 = straight, higher = more curved)
+    // Control point for curve
+    const sourceVal = link?.source?.id
+      ? link.source.id.charCodeAt(7) / 1000
+      : 0.2;
+
+    const curvature = link?.target?.id
+      ? (link.target.id.charCodeAt(7) / 1000) * 3
+      : 0.2;
+
+    console.log(sourceVal, curvature);
     const controlOffset = distance * curvature;
     const controlX =
       (source.x + target.x) / 2 + (dy / distance) * controlOffset;
     const controlY =
       (source.y + target.y) / 2 - (dx / distance) * controlOffset;
 
+    // Draw curved line
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
     ctx.quadraticCurveTo(controlX, controlY, target.x, target.y);
     ctx.stroke();
 
-    // Calculate line properties for pulse animation (reuse curve calculations)
-    // dx, dy, distance, controlX, controlY already calculated above
+    // Synchronized moving elements (breathing network effect)
+    const breathingCycle = 4; // 4 second cycle
+    const globalPhase = (animationTime / breathingCycle) % 1; // 0 to 1
 
-    // Create unique phase for this link
-    const linkPhase =
-      (String(source.id) + String(target.id))
-        .split("")
-        .reduce((a, b) => a + b.charCodeAt(0), 0) * 0.01;
+    // Create 2-3 moving elements per link
+    for (let i = 0; i < 1; i++) {
+      const elementPhase = (globalPhase + i * 0.5) % 1; // Offset elements
 
-    // Draw animated pulses
-    for (let i = 0; i < pulseCount; i++) {
-      const pulsePhase =
-        (animationTime * pulseSpeed + linkPhase + i * 1.2) % 2.5; // Faster 2.5-second cycle
+      // Calculate position along curve
+      const t = elementPhase;
+      const oneMinusT = 1 - t;
 
-      // Only show pulse for part of the cycle
-      if (pulsePhase < 2) {
-        // Calculate position along the curve
-        const progress = pulsePhase / 2; // 0 to 1 along the curve
+      const elementX =
+        oneMinusT * oneMinusT * source.x +
+        2 * oneMinusT * t * controlX +
+        t * t * target.x;
+      const elementY =
+        oneMinusT * oneMinusT * source.y +
+        2 * oneMinusT * t * controlY +
+        t * t * target.y;
 
-        // Use quadratic Bezier curve formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
-        const t = progress;
-        const oneMinusT = 1 - t;
+      // Draw moving element
+      const fadeIn = Math.min(elementPhase * 4, 1);
+      const fadeOut = Math.min((1 - elementPhase) * 4, 1);
+      const elementAlpha = fadeIn * fadeOut * 0.8;
 
-        const pulseX =
-          oneMinusT * oneMinusT * source.x +
-          2 * oneMinusT * t * controlX +
-          t * t * target.x;
-        const pulseY =
-          oneMinusT * oneMinusT * source.y +
-          2 * oneMinusT * t * controlY +
-          t * t * target.y;
+      ctx.globalAlpha = elementAlpha;
+      ctx.fillStyle = strokeStyle;
+      ctx.shadowColor = strokeStyle;
+      ctx.shadowBlur = 4;
 
-        // Pulse appearance - brighter and bigger at center, fading at edges
-        const fadeIn = Math.min(progress * 6, 1); // faster fade in
-        const fadeOut = Math.min((1 - progress) * 6, 1); // faster fade out
-        const pulseFade = fadeIn * fadeOut;
-
-        // Check for periodic large pulse (every ~8 seconds)
-        const largePulsePhase = (animationTime * pulseSpeed + linkPhase) % 8;
-        const isLargePulse = largePulsePhase < 0.3; // Large pulse for brief moment
-
-        // Adjust size and opacity based on pulse type
-        const baseSize = isLargePulse ? 4 : 2;
-        const maxSize = isLargePulse ? 7 : 3;
-        const baseOpacity = isLargePulse ? 0.6 : 0.3;
-
-        // Draw pulse as a glowing circle
-        ctx.globalAlpha = pulseFade * baseOpacity;
-        ctx.fillStyle = strokeStyle;
-        ctx.shadowColor = strokeStyle;
-        ctx.shadowBlur = isLargePulse ? 12 : 6;
-
-        ctx.beginPath();
-        ctx.arc(
-          pulseX,
-          pulseY,
-          baseSize + pulseFade * (maxSize - baseSize),
-          0,
-          2 * Math.PI,
-        );
-        ctx.fill();
-      }
+      ctx.beginPath();
+      ctx.arc(elementX, elementY, 0.5, 0, 2 * Math.PI);
+      ctx.fill();
     }
 
-    // Reset properties
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
   };
@@ -375,160 +221,15 @@ const MyceliumGraph = () => {
         onBackgroundClick={handleBackgroundClick}
         nodeRelSize={1}
         linkWidth={0}
-        linkCurvature={1}
+        linkCurvature={0.2}
         nodeLabel="id"
-        cooldownTicks={300}
-        d3AlphaDecay={0.01}
-        d3VelocityDecay={0.15}
-        d3ReheatSimulation={false}
-        linkDistance={7000}
-        linkStrength={0.1}
-        chargeStrength={-100}
+        cooldownTicks={100}
+        linkDistance={100}
+        chargeStrength={-300}
         enableNodeDrag={true}
         enableZoomInteraction={true}
         enablePanInteraction={true}
       />
-
-      {/* Legend/Key */}
-      <div className="legend-container">
-        <div className="legend-section">
-          <h4>Departments</h4>
-          <div className="legend-items">
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.CYAN }}
-              ></div>
-              <span>Engineering</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.GOLD }}
-              ></div>
-              <span>Design</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.CYAN }}
-              ></div>
-              <span>Product</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.CYAN }}
-              ></div>
-              <span>Marketing</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.GOLD }}
-              ></div>
-              <span>Sales</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.CYAN }}
-              ></div>
-              <span>HR</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-dot"
-                style={{ backgroundColor: COLORS.CYAN }}
-              ></div>
-              <span>Finance</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="legend-section">
-          <h4>Connections</h4>
-          <div className="legend-items">
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.CYAN,
-                  width: "20px",
-                  height: "2px",
-                }}
-              ></div>
-              <span>Department</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.GOLD,
-                  width: "20px",
-                  height: "1.5px",
-                }}
-              ></div>
-              <span>Collaboration</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.DARK_PURPLE,
-                  width: "20px",
-                  height: "1px",
-                }}
-              ></div>
-              <span>Personality Match</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.GOLD,
-                  width: "20px",
-                  height: "1px",
-                }}
-              ></div>
-              <span>Creative Synergy</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.DARK_PURPLE,
-                  width: "20px",
-                  height: "1px",
-                }}
-              ></div>
-              <span>Complementary</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.GOLD,
-                  width: "20px",
-                  height: "1.5px",
-                }}
-              ></div>
-              <span>Leadership</span>
-            </div>
-            <div className="legend-item">
-              <div
-                className="legend-line"
-                style={{
-                  backgroundColor: COLORS.CYAN,
-                  width: "20px",
-                  height: "1.2px",
-                }}
-              ></div>
-              <span>Mentorship</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {selectedNode && (
         <div className="node-details-panel">
@@ -547,37 +248,6 @@ const MyceliumGraph = () => {
               <p>
                 <strong>Department:</strong> {selectedNode.department}
               </p>
-              <p>
-                <strong>MBTI:</strong> {selectedNode.mbti}
-              </p>
-              <p>
-                <strong>Enneagram:</strong> {selectedNode.enneagram}
-              </p>
-              {selectedNode.ocean && (
-                <div className="ocean-scores">
-                  <h4>Big Five (OCEAN) Scores:</h4>
-                  <div className="trait-bars">
-                    {Object.entries(selectedNode.ocean).map(
-                      ([trait, score]) => (
-                        <div key={trait} className="trait-bar">
-                          <span className="trait-name">
-                            {trait.charAt(0).toUpperCase() + trait.slice(1)}:
-                          </span>
-                          <div className="bar-container">
-                            <div
-                              className="bar-fill"
-                              style={{ width: `${score * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="trait-score">
-                            {Math.round(score * 100)}%
-                          </span>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           )}
           {selectedNode.type === "department" && (
