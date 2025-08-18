@@ -94,7 +94,7 @@ const MyceliumGraph = () => {
     // Simple glow effect
     ctx.fillStyle = node.color;
     ctx.shadowColor = node.color;
-    ctx.shadowBlur = isHovered ? 15 : 8;
+    ctx.shadowBlur = isHovered ? 21 : 8;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
@@ -107,7 +107,7 @@ const MyceliumGraph = () => {
     ctx.shadowBlur = 0;
 
     // Draw label
-    const fontSize = Math.max(8, 10 / globalScale);
+    const fontSize = Math.max(2, 10 / globalScale);
     ctx.font = `${fontSize}px Inter, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -221,7 +221,7 @@ const MyceliumGraph = () => {
         nodeRelSize={1}
         linkWidth={0}
         linkCurvature={0.2}
-        nodeLabel="id"
+        nodeLabel={''}
         cooldownTicks={100}
         linkDistance={100}
         chargeStrength={-300}
